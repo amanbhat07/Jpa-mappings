@@ -1,17 +1,22 @@
 package com.sprk.jpa_mappings.service;
 
+import com.sprk.jpa_mappings.dtos.payload.BorrowRequest;
 import com.sprk.jpa_mappings.dtos.response.APIResponse;
 import com.sprk.jpa_mappings.dtos.payload.UpdateUserRequest;
 import com.sprk.jpa_mappings.dtos.payload.UserRequest;
 import com.sprk.jpa_mappings.dtos.response.UserResponse;
+import com.sprk.jpa_mappings.entities.BookModel;
 import com.sprk.jpa_mappings.entities.UserModel;
 import com.sprk.jpa_mappings.exceptions.DataNotFoundException;
 import com.sprk.jpa_mappings.exceptions.DuplicateDataFoundException;
+import com.sprk.jpa_mappings.repository.BookRepository;
 import com.sprk.jpa_mappings.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +24,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BookRepository bookRepository;
 
     public APIResponse<?> getAllUsers() {
 //        List<UserResponse> userResponseList = userRepository.findAll()
@@ -84,6 +90,27 @@ public class UserService {
 
         return APIResponse.builder()
            .data(userModel)
+           .build();
+    }
+
+    public APIResponse<?> borrowBook(Long userId, BorrowRequest borrowRequest) {
+        UserModel userModel = userRepository.findById(userId)
+           .orElseThrow(() -> new DataNotFoundException("User with id ("+ userId + ") not found."));
+
+        List<BookModel> bookModels = bookRepository.findAllById(borrowRequest.getBookIds());
+        if (borrowRequest.getBookIds().size() != bookModels.size())
+            throw new DataNotFoundException("Provide valid book ids");
+
+        Set<BookModel> existingBooks = userModel.getBorrowings();
+        existingBooks.addAll(bookModels);
+        userModel.setBorrowings(existingBooks);
+
+        userRepository.save(userModel);
+
+        userRepository.flush();
+
+        return APIResponse.builder()
+           .message("Book borrowed successfully")
            .build();
     }
 }

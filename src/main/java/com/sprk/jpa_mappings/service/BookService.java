@@ -2,7 +2,9 @@ package com.sprk.jpa_mappings.service;
 
 import com.sprk.jpa_mappings.dtos.payload.BookRequest;
 import com.sprk.jpa_mappings.dtos.response.APIResponse;
+import com.sprk.jpa_mappings.dtos.response.AuthorBooksResponse;
 import com.sprk.jpa_mappings.dtos.response.BookResponse;
+import com.sprk.jpa_mappings.dtos.response.BookResponseV2;
 import com.sprk.jpa_mappings.entities.BookModel;
 import com.sprk.jpa_mappings.entities.UserModel;
 import com.sprk.jpa_mappings.exceptions.DataNotFoundException;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +59,44 @@ public class BookService {
 
         return APIResponse.builder()
            .message("Book added successfully")
+           .build();
+    }
+
+    public APIResponse<?> getBooksByAuthorId(Long authorId) {
+        UserModel author = userRepository.findById(authorId)
+           .orElseThrow(() -> new DataNotFoundException("Invalid author ID"));
+
+        AuthorBooksResponse authorBooksResponse = AuthorBooksResponse.builder()
+           .authorName(author.getFirstName() + " " + author.getLastName())
+           .build();
+        List<BookResponseV2> bookResponseV2 = bookRepository.findByAuthor_Id(authorId)
+           .stream()
+           .map(book -> BookResponseV2.builder()
+              .bookId(book.getId())
+              .title(book.getTitle())
+              .price(book.getPrice())
+              .build()
+           ).toList();
+
+        authorBooksResponse.setBooks(bookResponseV2);
+
+        return APIResponse.builder()
+           .data(authorBooksResponse)
+           .build();
+    }
+
+    public APIResponse<?> getBorrowingsByBookId(Long bookId) {
+        BookModel bookModel = bookRepository.findById(bookId)
+           .orElseThrow(() -> new DataNotFoundException("Invalid book ID"));
+
+        Set<UserModel> borrowings = bookModel.getBorrowings();
+
+        List<String> borrowers = borrowings.stream()
+           .map(user -> user.getId() + " " + user.getFirstName() + " " + user.getLastName())
+           .toList();
+
+        return APIResponse.builder()
+           .data(borrowers)
            .build();
     }
 }

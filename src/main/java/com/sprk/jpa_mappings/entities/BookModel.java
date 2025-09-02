@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,6 +27,9 @@ public class BookModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserModel author;
+
+    @ManyToMany(mappedBy = "borrowings")
+    private Set<UserModel> borrowings;
 
     @Override
     public boolean equals(Object o) {

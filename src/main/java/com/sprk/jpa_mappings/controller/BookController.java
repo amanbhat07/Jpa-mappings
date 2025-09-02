@@ -30,4 +30,18 @@ public class BookController {
            .status(HttpStatus.CREATED)
            .body(bookService.addBook(bookRequest));
     }
+
+    @GetMapping("/authorId/{authorId}")
+    public ResponseEntity<?> getBooksByAuthorId(@PathVariable Long authorId){
+        return ResponseEntity
+           .status(HttpStatus.OK)
+           .body(bookService.getBooksByAuthorId(authorId));
+    }
+
+    @GetMapping("/borrowers/{bookId}")
+    public ResponseEntity<?> getBorrowingsByBookId(@PathVariable Long bookId){
+        return ResponseEntity
+           .status(HttpStatus.OK)
+           .body(bookService.getBorrowingsByBookId(bookId));
+    }
 }

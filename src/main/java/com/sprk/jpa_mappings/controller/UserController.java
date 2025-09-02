@@ -1,5 +1,6 @@
 package com.sprk.jpa_mappings.controller;
 
+import com.sprk.jpa_mappings.dtos.payload.BorrowRequest;
 import com.sprk.jpa_mappings.dtos.response.APIResponse;
 import com.sprk.jpa_mappings.dtos.payload.UpdateUserRequest;
 import com.sprk.jpa_mappings.dtos.payload.UserRequest;
@@ -53,5 +54,14 @@ public class UserController {
            .status(HttpStatus.OK)
            .body(userService.deleteUser(id));
     }
+
+
+    @PostMapping("/borrow/{userId}")
+    public ResponseEntity<?> borrowBook(@PathVariable Long userId, @RequestBody @Valid BorrowRequest borrowRequest) {
+        return ResponseEntity
+           .status(HttpStatus.OK)
+           .body(userService.borrowBook(userId, borrowRequest));
+    }
+
 
 }
