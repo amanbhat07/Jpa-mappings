@@ -63,5 +63,12 @@ public class UserController {
            .body(userService.borrowBook(userId, borrowRequest));
     }
 
+    @GetMapping("/borrowed/{userId}")
+    public ResponseEntity<?> getBorrowedBookByUserId(@PathVariable Long userId){
+        return ResponseEntity
+           .status(HttpStatus.OK)
+           .body(userService.getBorrowedBookByUserId(userId));
+    }
+
 
 }

@@ -136,4 +136,10 @@ public class UserService {
            .message("Book borrowed successfully")
            .build();
     }
+
+    public APIResponse<?> getBorrowedBookByUserId(Long userId) {
+        return APIResponse.builder()
+           .data(borrowingRepository.getBorrowedBookByUser_Id(userId))
+           .build();
+    }
 }
