@@ -6,6 +6,7 @@ import com.sprk.jpa_mappings.dtos.response.AuthorBooksResponse;
 import com.sprk.jpa_mappings.dtos.response.BookResponse;
 import com.sprk.jpa_mappings.dtos.response.BookResponseV2;
 import com.sprk.jpa_mappings.entities.BookModel;
+import com.sprk.jpa_mappings.entities.BorrowingModel;
 import com.sprk.jpa_mappings.entities.UserModel;
 import com.sprk.jpa_mappings.exceptions.DataNotFoundException;
 import com.sprk.jpa_mappings.repository.BookRepository;
@@ -89,10 +90,13 @@ public class BookService {
         BookModel bookModel = bookRepository.findById(bookId)
            .orElseThrow(() -> new DataNotFoundException("Invalid book ID"));
 
-        Set<UserModel> borrowings = bookModel.getBorrowings();
+        Set<BorrowingModel> borrowings = bookModel.getBorrowings();
 
         List<String> borrowers = borrowings.stream()
-           .map(user -> user.getId() + " " + user.getFirstName() + " " + user.getLastName())
+           .map(borrowing  -> {
+               UserModel borrower = borrowing.getBorrower();
+              return borrower.getId() + " " + borrower.getFirstName() + " " + borrower.getLastName();
+           })
            .toList();
 
         return APIResponse.builder()

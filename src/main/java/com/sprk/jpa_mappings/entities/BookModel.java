@@ -28,8 +28,15 @@ public class BookModel {
     @JoinColumn(name = "user_id", nullable = false)
     private UserModel author;
 
-    @ManyToMany(mappedBy = "borrowings")
-    private Set<UserModel> borrowings;
+    @OneToMany(mappedBy = "book")
+    private Set<BorrowingModel> borrowings;
+
+
+
+
+
+
+
 
     @Override
     public boolean equals(Object o) {

@@ -34,14 +34,9 @@ public class UserModel {
     @OneToMany(mappedBy = "author")
     private Set<BookModel> books;
 
-    @ManyToMany
-    @JoinTable(
-       name = "borrowings",
-       joinColumns = @JoinColumn(name = "user_id"),
-       inverseJoinColumns = @JoinColumn(name = "book_id")
-    )
+    @OneToMany(mappedBy = "borrower")
     @Builder.Default
-    private Set<BookModel> borrowings = new HashSet<>();
+    private Set<BorrowingModel> borrowings = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
