@@ -12,6 +12,7 @@ import com.sprk.jpa_mappings.exceptions.DataNotFoundException;
 import com.sprk.jpa_mappings.repository.BookRepository;
 import com.sprk.jpa_mappings.repository.UserRepository;
 import jakarta.validation.Valid;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -87,6 +88,7 @@ public class BookService {
     }
 
     public APIResponse<?> getBorrowingsByBookId(Long bookId) {
+        // search for book if it exist or not?
         BookModel bookModel = bookRepository.findById(bookId)
            .orElseThrow(() -> new DataNotFoundException("Invalid book ID"));
 
@@ -105,4 +107,21 @@ public class BookService {
     }
 
 
+    public APIResponse<?> getBookByBookId(Long bookId) {
+        // searching for book if it is existing or not?
+        BookModel bookModel = bookRepository.findById(bookId)
+                .orElseThrow(() -> new DataNotFoundException("Book does not exit with BookId = "+bookId+"."));
+
+        BookResponse bookResponse = BookResponse.builder()
+                .bookId(bookModel.getId())
+                .title(bookModel.getTitle())
+                .price(bookModel.getPrice())
+                .author(bookModel.getAuthor().getFirstName()+" "+bookModel.getAuthor().getLastName())
+                .build();
+
+        return APIResponse.builder()
+                .data(bookResponse)
+                .message("Book Found")
+                .build();
+    }
 }

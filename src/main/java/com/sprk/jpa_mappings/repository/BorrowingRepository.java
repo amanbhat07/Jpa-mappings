@@ -41,4 +41,6 @@ public interface BorrowingRepository extends JpaRepository<BorrowingModel, Long>
        """)
     List<UserBorrowingsProjection> getBorrowedBookByUser_Id(@Param("userId") Long userId);
 
+//
+//    List<BorrowingModel> findByBorrower_Id(Long userId);
 }
