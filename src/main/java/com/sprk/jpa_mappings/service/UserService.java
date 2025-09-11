@@ -4,6 +4,7 @@ import com.sprk.jpa_mappings.dtos.payload.BorrowRequest;
 import com.sprk.jpa_mappings.dtos.response.APIResponse;
 import com.sprk.jpa_mappings.dtos.payload.UpdateUserRequest;
 import com.sprk.jpa_mappings.dtos.payload.UserRequest;
+import com.sprk.jpa_mappings.dtos.response.BookResponseV3;
 import com.sprk.jpa_mappings.dtos.response.UserResponse;
 import com.sprk.jpa_mappings.entities.BookModel;
 import com.sprk.jpa_mappings.entities.BorrowingModel;
@@ -15,10 +16,14 @@ import com.sprk.jpa_mappings.repository.BorrowingRepository;
 import com.sprk.jpa_mappings.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.mapping.Collection;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,23 +98,38 @@ public class UserService {
         UserModel userModel = userRepository.findById(id)
            .orElseThrow(() -> new DataNotFoundException("User with id ("+ id + ") not found."));
 
+        UserResponse userResponse = new UserResponse(
+                userModel.getId(),
+                userModel.getUserName(),
+                userModel.getFirstName(),
+                userModel.getLastName());
+
         return APIResponse.builder()
-           .data(userModel)
+           .data(userResponse)
            .build();
     }
 
     public APIResponse<?> borrowBook(Long userId, BorrowRequest borrowRequest) {
+        // search for user if it exist or not ?
         UserModel userModel = userRepository.findById(userId)
            .orElseThrow(() -> new DataNotFoundException("User with id ("+ userId + ") not found."));
-//
+
+        // search for book if they exist in bookTable, add in bookModel List //////// will skip those which does not exist
         List<BookModel> bookModels = bookRepository.findAllById(borrowRequest.getBookIds());
+
+        // check if (no. of books_borrowing == no. of booksAvailable)
         if (borrowRequest.getBookIds().size() != bookModels.size())
             throw new DataNotFoundException("Provide valid book ids");
 
         List<BorrowingModel> borrowedModels = borrowingRepository.findByBorrower_IdAndBook_IdIn(userId, borrowRequest.getBookIds());
-        if (!borrowedModels.isEmpty())
-            throw new DuplicateDataFoundException("Books are already borrowed.");
-
+        if (!borrowedModels.isEmpty()){
+            String ids = borrowedModels.stream()
+                    .map(br -> {
+                        return String.valueOf(br.getBook().getId());
+                    })
+                    .collect(Collectors.joining(","));
+            throw new DuplicateDataFoundException("Books are already borrowed with ids ["+ids+"]");
+        }
 
 //
 //        Set<BorrowingModel> existingBooks = userModel.getBorrowings();
@@ -142,4 +162,37 @@ public class UserService {
            .data(borrowingRepository.getBorrowedBookByUser_Id(userId))
            .build();
     }
+
+//
+//    public APIResponse<?> getBooksBorrowedByUserId(Long userId) {
+//        // search for user if it exist or not ?
+//        UserModel userModel = userRepository.findById(userId)
+//                .orElseThrow(() -> new DataNotFoundException("User with id (" + userId + ") not found."));
+//
+//        List<BorrowingModel> borrowingRecords = borrowingRepository.findByBorrower_Id(userId);
+//
+//        List<BookResponseV3> borrowedBooks = borrowingRecords
+//                .stream()
+//                .map(br -> BookResponseV3.builder()
+//                        .bookId(br.getBook().getId())
+//                        .title(br.getBook().getTitle())
+//                        .price(br.getBook().getPrice())
+//                        .borrowDate(br.getBorrowDate())
+//                        .build())
+//                .collect(Collectors.toList());
+//        return APIResponse.builder()
+//                .data(borrowedBooks)
+//                .build();
+//    }
+
+    public APIResponse<?> getCountOfBorrowedBooks(Long userId) {
+        UserModel userModel = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        List<BorrowingModel> borrowingModels = borrowingRepository.findByBorrower_Id(userId);
+        int count = borrowingModels.size();
+        return APIResponse.builder()
+                .message("No. of books borrowed are : "+count+".")
+                .build();
+    }
+
 }

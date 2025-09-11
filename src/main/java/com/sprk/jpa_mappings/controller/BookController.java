@@ -44,4 +44,19 @@ public class BookController {
            .status(HttpStatus.OK)
            .body(bookService.getBorrowingsByBookId(bookId));
     }
+
+    //get book by book id
+    @GetMapping("/book/{bookId}")
+    public ResponseEntity<?> getBookByBookId(@PathVariable Long bookId){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bookService.getBookByBookId(bookId));
+    }
+
+    @GetMapping("/max")
+    public ResponseEntity<?> getMaxBorrowedBook(){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bookService.getMaxBorrowedBook());
+    }
 }

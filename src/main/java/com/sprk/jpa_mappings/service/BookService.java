@@ -1,5 +1,6 @@
 package com.sprk.jpa_mappings.service;
 
+import com.sprk.jpa_mappings.dtos.MostBorrowedBookDto;
 import com.sprk.jpa_mappings.dtos.payload.BookRequest;
 import com.sprk.jpa_mappings.dtos.response.APIResponse;
 import com.sprk.jpa_mappings.dtos.response.AuthorBooksResponse;
@@ -10,9 +11,12 @@ import com.sprk.jpa_mappings.entities.BorrowingModel;
 import com.sprk.jpa_mappings.entities.UserModel;
 import com.sprk.jpa_mappings.exceptions.DataNotFoundException;
 import com.sprk.jpa_mappings.repository.BookRepository;
+import com.sprk.jpa_mappings.repository.BorrowingRepository;
 import com.sprk.jpa_mappings.repository.UserRepository;
 import jakarta.validation.Valid;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +29,7 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final BorrowingRepository borrowingRepository;
 
     public APIResponse<?> getAllBooks() {
         List<BookResponse> bookResponses = bookRepository.findAll()
@@ -87,6 +92,7 @@ public class BookService {
     }
 
     public APIResponse<?> getBorrowingsByBookId(Long bookId) {
+        // search for book if it exist or not?
         BookModel bookModel = bookRepository.findById(bookId)
            .orElseThrow(() -> new DataNotFoundException("Invalid book ID"));
 
@@ -105,4 +111,32 @@ public class BookService {
     }
 
 
+    public APIResponse<?> getBookByBookId(Long bookId) {
+        // searching for book if it is existing or not?
+        BookModel bookModel = bookRepository.findById(bookId)
+                .orElseThrow(() -> new DataNotFoundException("Book does not exit with BookId = "+bookId+"."));
+
+        BookResponse bookResponse = BookResponse.builder()
+                .bookId(bookModel.getId())
+                .title(bookModel.getTitle())
+                .price(bookModel.getPrice())
+                .author(bookModel.getAuthor().getFirstName()+" "+bookModel.getAuthor().getLastName())
+                .build();
+
+        return APIResponse.builder()
+                .data(bookResponse)
+                .message("Book Found")
+                .build();
+    }
+
+    public APIResponse<?> getMaxBorrowedBook() {
+
+        List<MostBorrowedBookDto> mostBorrowedBookDtos = borrowingRepository.getMaxBorrowedBook(PageRequest.of(0,1));
+
+        System.out.println(mostBorrowedBookDtos);
+
+        return APIResponse.builder()
+                .data(mostBorrowedBookDtos.get(0))
+                .build();
+    }
 }
